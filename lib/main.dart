@@ -104,57 +104,19 @@ class MainScreen extends StatelessWidget {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ListScreen(homeStore: homeStore),
-                    ),
-                  );
+                  _showListDialog(context);
                 },
                 style: ElevatedButton.styleFrom(
                   primary: Colors.blue,
                 ),
-                child: Text('Ver Lista', style: TextStyle(color: Colors.white)),
+                child: Text('Listar', style: TextStyle(color: Colors.white)),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ListScreen extends StatelessWidget {
-  final HomeStore homeStore;
-
-  ListScreen({required this.homeStore});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Lista de Dados Salvos',
-            style: TextStyle(color: Colors.white, fontSize: 18)),
-        backgroundColor: Colors.blue,
-      ),
-      body: Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Lista de Dados Salvos:',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue),
-              ),
-              SizedBox(height: 10),
-              Expanded(
-                child: Observer(
-                  builder: (_) => ListView.builder(
+              SizedBox(height: 20),
+              Observer(
+                builder: (_) => Visibility(
+                  visible: homeStore.showList,
+                  child: ListView.builder(
+                    shrinkWrap: true,
                     itemCount: homeStore.savedRecords.length,
                     itemBuilder: (context, index) {
                       final record = homeStore.savedRecords[index];
@@ -188,6 +150,58 @@ class ListScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _showListDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Lista de Dados Salvos'),
+          content: Container(
+            width: double.maxFinite,
+            child: Observer(
+              builder: (_) => ListView.builder(
+                shrinkWrap: true,
+                itemCount: homeStore.savedRecords.length,
+                itemBuilder: (context, index) {
+                  final record = homeStore.savedRecords[index];
+                  final splitRecord = record.split('|');
+                  final name = splitRecord[0];
+                  final email = splitRecord[1];
+
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    color: Colors.white,
+                    child: ListTile(
+                      title: Text(
+                        'Nome: $name\nE-mail: $email',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          homeStore.removeRecord(record);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class HomeStore = _HomeStoreBase with _$HomeStore;
@@ -201,6 +215,9 @@ abstract class _HomeStoreBase with Store {
 
   @observable
   String phone = '';
+
+  @observable
+  bool showList = false;
 
   @action
   void setName(String value) => name = value;
