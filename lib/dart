@@ -1,0 +1,80 @@
+// Em home_screen.dart
+ElevatedButton(
+  onPressed: () => homeStore.showListModal(context),
+  child: Text('Abrir Lista'),
+)
+
+// Em home_store.dart
+class _HomeStoreBase with Store {
+  // ... suas variáveis e funções existentes
+
+  @observable
+  ObservableList<String> dataList = ObservableList();
+
+  @action
+  void showListModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView.builder(
+          itemCount: dataList.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(dataList[index]),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () => deleteData(index),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @action
+  void deleteData(int index) {
+    dataList.removeAt(index);
+    // Atualizar o modal ou a UI principal conforme necessário
+  }
+}
+// Em home_screen.dart
+ElevatedButton(
+  onPressed: () => homeStore.showListModal(context),
+  child: Text('Abrir Lista'),
+)
+
+// Em home_store.dart
+class _HomeStoreBase with Store {
+  // ... suas variáveis e funções existentes
+
+  @observable
+  ObservableList<String> dataList = ObservableList();
+
+  @action
+  void showListModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return ListView.builder(
+          itemCount: dataList.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(dataList[index]),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () => deleteData(index),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @action
+  void deleteData(int index) {
+    dataList.removeAt(index);
+    // Atualizar o modal ou a UI principal conforme necessário
+  }
+}
