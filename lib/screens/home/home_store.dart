@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
+
 part 'home_store.g.dart';
 
 class HomeStore = _HomeStoreBase with _$HomeStore;

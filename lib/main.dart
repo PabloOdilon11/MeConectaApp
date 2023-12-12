@@ -3,6 +3,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:flutter/services.dart';
 
+part 'mobx.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -130,11 +132,23 @@ class MainScreen extends StatelessWidget {
                             'Nome: $name\nE-mail: $email',
                             style: TextStyle(color: Colors.black),
                           ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              homeStore.removeRecord(record);
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  _showEditDialog(context, homeStore, record);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  homeStore.removeRecord(record);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -175,12 +189,23 @@ class MainScreen extends StatelessWidget {
                         'Nome: $name\nE-mail: $email',
                         style: TextStyle(color: Colors.black),
                       ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          homeStore.removeRecord(record);
-                          Navigator.pop(context);
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              _showEditDialog(context, homeStore, record);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              homeStore.removeRecord(record);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -194,6 +219,68 @@ class MainScreen extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               child: Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditDialog(
+      BuildContext context, HomeStore homeStore, String record) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Editar Dados'),
+          content: SingleChildScrollView(
+            child: Container(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Nome Completo'),
+                    onChanged: (value) => homeStore.setName(value),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))
+                    ],
+                    maxLength: 50,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Celular'),
+                    onChanged: (value) => homeStore.setPhone(value),
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                    ],
+                    maxLength: 15,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'E-mail'),
+                    onChanged: (value) => homeStore.setEmail(value),
+                    keyboardType: TextInputType.emailAddress,
+                    maxLength: 100,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                homeStore.updateRecord(record);
+                Navigator.of(context).pop();
+              },
+              child: Text('Salvar'),
             ),
           ],
         );
@@ -235,6 +322,14 @@ abstract class _HomeStoreBase with Store {
   void saveData() {
     final String record = '$name|$email|$phone';
     savedRecords.add(record);
+  }
+
+  @action
+  void updateRecord(String oldRecord) {
+    final index = savedRecords.indexOf(oldRecord);
+    if (index != -1) {
+      savedRecords[index] = '$name|$email|$phone';
+    }
   }
 
   @action
