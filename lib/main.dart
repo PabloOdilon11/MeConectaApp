@@ -3,8 +3,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:flutter/services.dart';
 
-part 'main.g.dart';
-
 void main() {
   runApp(MyApp());
 }
