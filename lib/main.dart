@@ -1,9 +1,10 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:flutter/services.dart';
 
-part 'main.g.dart';
+part 'mobx.dart';
 
 void main() {
   runApp(MyApp());
@@ -89,7 +90,8 @@ class MainScreen extends StatelessWidget {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Por favor, preencha todos os campos!',
+                        content: Text(
+                            'Por favor, preencha todos os campos corretamente!',
                             style: TextStyle(color: Colors.white)),
                         backgroundColor: Colors.red,
                       ),
@@ -132,11 +134,23 @@ class MainScreen extends StatelessWidget {
                             'Nome: $name\nE-mail: $email',
                             style: TextStyle(color: Colors.black),
                           ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              homeStore.removeRecord(record);
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  _showEditDialog(context, homeStore, record);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  homeStore.removeRecord(record);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -177,12 +191,23 @@ class MainScreen extends StatelessWidget {
                         'Nome: $name\nE-mail: $email',
                         style: TextStyle(color: Colors.black),
                       ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          homeStore.removeRecord(record);
-                          Navigator.pop(context);
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              _showEditDialog(context, homeStore, record);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              homeStore.removeRecord(record);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -196,6 +221,68 @@ class MainScreen extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               child: Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditDialog(
+      BuildContext context, HomeStore homeStore, String record) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Editar Dados'),
+          content: SingleChildScrollView(
+            child: Container(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Nome Completo'),
+                    onChanged: (value) => homeStore.setName(value),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))
+                    ],
+                    maxLength: 50,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Celular'),
+                    onChanged: (value) => homeStore.setPhone(value),
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                    ],
+                    maxLength: 15,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'E-mail'),
+                    onChanged: (value) => homeStore.setEmail(value),
+                    keyboardType: TextInputType.emailAddress,
+                    maxLength: 100,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                homeStore.updateRecord(record);
+                Navigator.of(context).pop();
+              },
+              child: Text('Salvar'),
             ),
           ],
         );
@@ -229,14 +316,28 @@ abstract class _HomeStoreBase with Store {
   void setPhone(String value) => phone = value;
 
   @action
+  bool isValidEmail() {
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    return email.isNotEmpty && emailRegex.hasMatch(email);
+  }
+
+  @action
   bool isValidData() {
-    return name.isNotEmpty && email.isNotEmpty && phone.isNotEmpty;
+    return name.isNotEmpty && isValidEmail() && phone.isNotEmpty;
   }
 
   @action
   void saveData() {
     final String record = '$name|$email|$phone';
     savedRecords.add(record);
+  }
+
+  @action
+  void updateRecord(String oldRecord) {
+    final index = savedRecords.indexOf(oldRecord);
+    if (index != -1) {
+      savedRecords[index] = '$name|$email|$phone';
+    }
   }
 
   @action

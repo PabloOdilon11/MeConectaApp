@@ -106,6 +106,17 @@ mixin _$HomeStore on _HomeStoreBase, Store {
     }
   }
 
+  @action
+  bool isValidEmail() {
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    return email.isNotEmpty && emailRegex.hasMatch(email);
+  }
+
+  @action
+  bool isValidData() {
+    return name.isNotEmpty && isValidEmail() && phone.isNotEmpty;
+  }
+
   @override
   void saveData() {
     final _$actionInfo = _$_HomeStoreBaseActionController.startAction(

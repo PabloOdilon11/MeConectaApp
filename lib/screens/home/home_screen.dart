@@ -49,9 +49,18 @@ class HomeScreen extends StatelessWidget {
                     final record = store.savedRecords[index];
                     return ListTile(
                       title: Text(record),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => store.removeRecord(record),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () => _showEditDialog(context, record),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () => store.removeRecord(record),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -61,6 +70,39 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context, String record) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Editar Registro'),
+          content: TextField(
+            controller: TextEditingController(text: record),
+            onChanged: (value) {
+              // Atualize os dados no estado conforme o usuário digita
+            },
+            decoration: InputDecoration(labelText: 'Editar Dados'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Salve as alterações e atualize a lista
+                Navigator.of(context).pop();
+              },
+              child: Text('Salvar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

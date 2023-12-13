@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
+
 part 'home_store.g.dart';
 
 class HomeStore = _HomeStoreBase with _$HomeStore;
@@ -17,6 +18,8 @@ abstract class _HomeStoreBase with Store {
   void removeRecord(String record) {
     savedRecords.remove(record);
   }
+
+  String newMethod(String email) => email;
 
   @action
   void openModal(BuildContext context) {
