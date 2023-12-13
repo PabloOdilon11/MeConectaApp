@@ -19,6 +19,8 @@ abstract class _HomeStoreBase with Store {
     savedRecords.remove(record);
   }
 
+  String newMethod(String email) => email;
+
   @action
   void openModal(BuildContext context) {
     showModalBottomSheet(

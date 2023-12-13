@@ -1,3 +1,4 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
@@ -89,7 +90,8 @@ class MainScreen extends StatelessWidget {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Por favor, preencha todos os campos!',
+                        content: Text(
+                            'Por favor, preencha todos os campos corretamente!',
                             style: TextStyle(color: Colors.white)),
                         backgroundColor: Colors.red,
                       ),
@@ -314,8 +316,14 @@ abstract class _HomeStoreBase with Store {
   void setPhone(String value) => phone = value;
 
   @action
+  bool isValidEmail() {
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    return email.isNotEmpty && emailRegex.hasMatch(email);
+  }
+
+  @action
   bool isValidData() {
-    return name.isNotEmpty && email.isNotEmpty && phone.isNotEmpty;
+    return name.isNotEmpty && isValidEmail() && phone.isNotEmpty;
   }
 
   @action
