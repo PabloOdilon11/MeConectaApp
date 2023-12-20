@@ -7,11 +7,49 @@ class HomeStore = _HomeStoreBase with _$HomeStore;
 
 abstract class _HomeStoreBase with Store {
   @observable
-  ObservableList<String> savedRecords = ObservableList<String>();
+  String name = '';
+
+  @observable
+  String email = '';
+
+  @observable
+  String phone = '';
+
+  @observable
+  bool showList = false;
 
   @action
-  void addRecord(String record) {
+  void setName(String value) => name = value;
+
+  @action
+  void setEmail(String value) => email = value;
+
+  @action
+  void setPhone(String value) => phone = value;
+
+  @action
+  bool isValidEmail() {
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    return email.isNotEmpty && emailRegex.hasMatch(email);
+  }
+
+  @action
+  bool isValidData() {
+    return name.isNotEmpty && isValidEmail() && phone.isNotEmpty;
+  }
+
+  @action
+  void saveData() {
+    final String record = '$name|$email|$phone';
     savedRecords.add(record);
+  }
+
+  @action
+  void updateRecord(String oldRecord) {
+    final index = savedRecords.indexOf(oldRecord);
+    if (index != -1) {
+      savedRecords[index] = '$name|$email|$phone';
+    }
   }
 
   @action
@@ -19,37 +57,6 @@ abstract class _HomeStoreBase with Store {
     savedRecords.remove(record);
   }
 
-  String newMethod(String email) => email;
-
-  @action
-  void openModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => Container(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: savedRecords.length,
-              itemBuilder: (_, index) {
-                final record = savedRecords[index];
-                return ListTile(
-                  title: Text(record),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      removeRecord(record);
-                      Navigator.pop(context);
-                    },
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  @observable
+  ObservableList<String> savedRecords = ObservableList<String>();
 }
