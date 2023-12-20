@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'home_store.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatelessWidget {
-  final HomeStore store = HomeStore();
+  final HomeStore homeStore = HomeStore();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: null,
+        title: Text(
+          'Me Conecta App',
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -17,53 +21,112 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                color: Colors.blue,
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text(
-                  'Me conecta',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+              TextField(
+                decoration: InputDecoration(labelText: 'Nome Completo'),
+                onChanged: (value) => homeStore.setName(value),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))
+                ],
+                maxLength: 50,
               ),
               SizedBox(height: 10),
               TextField(
-                decoration: InputDecoration(labelText: 'Nome Completo'),
-                onChanged: (value) => store.addRecord(value),
+                decoration: InputDecoration(labelText: 'Celular'),
+                onChanged: (value) => homeStore.setPhone(value),
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                ],
+                maxLength: 15,
+              ),
+              SizedBox(height: 10),
+              TextField(
+                decoration: InputDecoration(labelText: 'E-mail'),
+                onChanged: (value) => homeStore.setEmail(value),
+                keyboardType: TextInputType.emailAddress,
+                maxLength: 100,
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => store.openModal(context),
-                child: Text('Abrir Modal'),
-              ),
-              Observer(
-                builder: (_) => ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: store.savedRecords.length,
-                  itemBuilder: (_, index) {
-                    final record = store.savedRecords[index];
-                    return ListTile(
-                      title: Text(record),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () => _showEditDialog(context, record),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () => store.removeRecord(record),
-                          ),
-                        ],
+                onPressed: () {
+                  if (homeStore.isValidData()) {
+                    homeStore.saveData();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Dados salvos com sucesso!',
+                            style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colors.blue,
                       ),
                     );
-                  },
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'Por favor, preencha todos os campos corretamente!',
+                            style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Text('Enviar', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.blue,
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  _showListDialog(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.blue,
+                ),
+                child: Text('Listar', style: TextStyle(color: Colors.white)),
+              ),
+              SizedBox(height: 20),
+              Observer(
+                builder: (_) => Visibility(
+                  visible: homeStore.showList,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: homeStore.savedRecords.length,
+                    itemBuilder: (context, index) {
+                      final record = homeStore.savedRecords[index];
+                      final splitRecord = record.split('|');
+                      final name = splitRecord[0];
+                      final email = splitRecord[1];
+
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 5),
+                        color: Colors.white,
+                        child: ListTile(
+                          title: Text(
+                            'Nome: $name\nE-mail: $email',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  _showEditDialog(context, homeStore, record);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  homeStore.removeRecord(record);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -73,18 +136,110 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showEditDialog(BuildContext context, String record) {
+  void _showListDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Editar Registro'),
-          content: TextField(
-            controller: TextEditingController(text: record),
-            onChanged: (value) {
-              // Atualize os dados no estado conforme o usuário digita
-            },
-            decoration: InputDecoration(labelText: 'Editar Dados'),
+          title: Text('Lista de Dados Salvos'),
+          content: Container(
+            width: double.maxFinite,
+            child: Observer(
+              builder: (_) => ListView.builder(
+                shrinkWrap: true,
+                itemCount: homeStore.savedRecords.length,
+                itemBuilder: (context, index) {
+                  final record = homeStore.savedRecords[index];
+                  final splitRecord = record.split('|');
+                  final name = splitRecord[0];
+                  final email = splitRecord[1];
+
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    color: Colors.white,
+                    child: ListTile(
+                      title: Text(
+                        'Nome: $name\nE-mail: $email',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              _showEditDialog(context, homeStore, record);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              homeStore.removeRecord(record);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditDialog(
+      BuildContext context, HomeStore homeStore, String record) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Editar Dados'),
+          content: SingleChildScrollView(
+            child: Container(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Nome Completo'),
+                    onChanged: (value) => homeStore.setName(value),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))
+                    ],
+                    maxLength: 50,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Celular'),
+                    onChanged: (value) => homeStore.setPhone(value),
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                    ],
+                    maxLength: 15,
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'E-mail'),
+                    onChanged: (value) => homeStore.setEmail(value),
+                    keyboardType: TextInputType.emailAddress,
+                    maxLength: 100,
+                  ),
+                ],
+              ),
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -95,7 +250,7 @@ class HomeScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Salve as alterações e atualize a lista
+                homeStore.updateRecord(record);
                 Navigator.of(context).pop();
               },
               child: Text('Salvar'),
