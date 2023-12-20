@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/home/widgets/action_button.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'home_store.dart';
 import 'package:flutter/services.dart';
@@ -47,7 +48,7 @@ class HomeScreen extends StatelessWidget {
                 maxLength: 100,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
+              ActionButton(
                 onPressed: () {
                   if (homeStore.isValidData()) {
                     homeStore.saveData();
@@ -69,21 +70,16 @@ class HomeScreen extends StatelessWidget {
                     );
                   }
                 },
-                child: Text('Enviar', style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.blue,
-                ),
+                title: 'Enviar',
+                backgroundColor: Colors.blue,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  _showListDialog(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.blue,
-                ),
-                child: Text('Listar', style: TextStyle(color: Colors.white)),
-              ),
+              ActionButton(
+                  onPressed: () {
+                    _showListDialog(context);
+                  },
+                  backgroundColor: Colors.blue,
+                  title: 'Listar'),
               SizedBox(height: 20),
               Observer(
                 builder: (_) => Visibility(
