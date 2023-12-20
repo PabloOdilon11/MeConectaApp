@@ -72,14 +72,17 @@ class HomeScreen extends StatelessWidget {
                 },
                 title: 'Enviar',
                 backgroundColor: Colors.blue,
+                decoration: 'Enviar2',
               ),
               SizedBox(height: 20),
               ActionButton(
-                  onPressed: () {
-                    _showListDialog(context);
-                  },
-                  backgroundColor: Colors.blue,
-                  title: 'Listar'),
+                onPressed: () {
+                  _showListDialog(context);
+                },
+                backgroundColor: Colors.blue,
+                title: 'Listar',
+                decoration: 'Listar',
+              ),
               SizedBox(height: 20),
               Observer(
                 builder: (_) => Visibility(
